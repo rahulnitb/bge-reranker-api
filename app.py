@@ -4,11 +4,11 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from contextlib import asynccontextmanager
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import torch
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 MODEL_NAME = "BAAI/bge-reranker-v2-m3"
@@ -75,16 +75,28 @@ app = FastAPI(title="bge-reranker-v2-m3", lifespan=lifespan)
 
 class RerankRequest(BaseModel):
     query: str
-    documents: List[str] = Field(min_length=1)
+    # each document is a plain string, or an object like {"program_id": 1, "desc": "..."}
+    documents: List[Union[str, Dict[str, Any]]] = Field(min_length=1)
+    text_field: str = "desc"  # which key of an object document holds the text to rank
     top_n: Optional[int] = Field(default=None, ge=1)
     normalize: bool = True
     max_length: int = Field(default=DEFAULT_MAX_LENGTH, ge=16, le=8192)
+
+    @model_validator(mode="after")
+    def _check_text_field(self):
+        for i, d in enumerate(self.documents):
+            if isinstance(d, dict) and not isinstance(d.get(self.text_field), str):
+                raise ValueError(f"documents[{i}] must have a string field '{self.text_field}'")
+        return self
+
+    def texts(self) -> List[str]:
+        return [d if isinstance(d, str) else d[self.text_field] for d in self.documents]
 
 
 class RerankItem(BaseModel):
     index: int
     score: float
-    document: str
+    document: Union[str, Dict[str, Any]]  # echoes the input document unchanged (string or object)
 
 
 class RerankResponse(BaseModel):
@@ -121,7 +133,7 @@ def score_pairs(query, docs, max_length, normalize):
 @app.post("/rerank", response_model=RerankResponse)
 def rerank(req: RerankRequest):  # sync def -> runs in threadpool, event loop stays free
     t0 = time.perf_counter()
-    scores = score_pairs(req.query, req.documents, req.max_length, req.normalize)
+    scores = score_pairs(req.query, req.texts(), req.max_length, req.normalize)
     order = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
     if req.top_n:
         order = order[: req.top_n]

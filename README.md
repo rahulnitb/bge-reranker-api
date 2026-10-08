@@ -47,7 +47,8 @@ Windows? Use `setup.ps1` / `run.ps1` instead (same steps).
 | Field | Default | Meaning |
 |---|---|---|
 | `query` | required | Search text |
-| `documents` | required | List of strings (at least 1, no upper limit) |
+| `documents` | required | List of strings **or objects** such as `{"program_id": 1, "desc": "..."}` (at least 1, no upper limit) |
+| `text_field` | `desc` | For object documents: the key that holds the text to rank |
 | `top_n` | all | Return only the best N |
 | `normalize` | `true` | Sigmoid scores in 0..1; `false` gives raw logits |
 | `max_length` | 512 | Max tokens per query+document pair (longer is truncated) |
@@ -60,6 +61,23 @@ Response (sorted best first; `index` is the position in your input):
 }
 ```
 `latency_ms` is server-side scoring time.
+
+### Tracking documents by ID
+Send objects instead of strings. The text is read from the `desc` key (change it with `text_field`); all other
+keys (`program_id`, `category`, ...) are passed through untouched, and each result echoes the whole object in `document`:
+```bash
+curl -s http://localhost:8901/rerank -H 'content-type: application/json' -d '{
+  "query": "what is panda?",
+  "documents": [
+    {"program_id": 1, "desc": "hi"},
+    {"program_id": 2, "desc": "The giant panda is a bear species endemic to China."}
+  ]
+}'
+# -> {"results":[{"index":1,"score":0.86,"document":{"program_id":2,"desc":"The giant panda ..."}},
+#                {"index":0,"score":0.0002,"document":{"program_id":1,"desc":"hi"}}],"latency_ms":...}
+```
+Read the ID with `result["document"]["program_id"]`. An object without a string `desc` field returns HTTP 422.
+Plain strings still work, and strings and objects can be mixed in one request.
 
 ### `GET /health`
 Shows status, backend, model file and tokenizer location in use.

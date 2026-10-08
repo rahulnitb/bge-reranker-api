@@ -1,6 +1,6 @@
 """Latency benchmark for the reranker API.
 
-Usage: .venv\Scripts\python.exe bench\benchmark.py [--url http://localhost:8901] [--requests 20] [--quick]
+Usage: python bench/benchmark.py [--url http://localhost:8901] [--requests 20] [--quick]
 """
 import argparse
 import csv

@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from benchmark import run_scenario
 
 ROOT = Path(__file__).parent.parent
-PY = ROOT / ".venv" / "Scripts" / "python.exe"
+PY = ROOT / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
 URL = "http://localhost:8902"
 BACKENDS = sys.argv[1].split(",") if len(sys.argv) > 1 else ["torch", "onnx", "onnx-int8"]
 SCEN = [(1, "medium"), (10, "medium"), (50, "medium")]

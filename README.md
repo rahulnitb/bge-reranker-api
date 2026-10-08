@@ -4,20 +4,33 @@ A FastAPI service that reranks documents against a query using
 [BAAI/bge-reranker-v2-m3](https://huggingface.co/BAAI/bge-reranker-v2-m3), served on **port 8901**.
 It runs on CPU and supports three backends: PyTorch, ONNX fp32 and ONNX int8 (default, fastest).
 
-## Quick start (Windows / PowerShell)
+## Quick start (Linux)
 
-Requires Python 3.10+ (developed on 3.13) and ~8 GB free disk.
+Requirements: Python 3.10+ with the `venv` module (on Debian/Ubuntu: `sudo apt install python3-venv`),
+`git`, x86_64 CPU, ~8 GB free disk, internet access for the first setup.
 
-```powershell
+```bash
 git clone https://github.com/rahulnitb/bge-reranker-api.git
 cd bge-reranker-api
-.\setup.ps1     # creates .venv, installs packages, downloads the model, exports + quantizes to ONNX (~5-10 min)
-.\run.ps1       # starts the API on http://localhost:8901  (interactive docs: /docs)
+./setup.sh     # creates .venv, installs packages, downloads the model, exports + quantizes to ONNX (~5-10 min)
+./run.sh       # starts the API on http://0.0.0.0:8901  (interactive docs: /docs)
 ```
 
-The model files (~3 GB) are **not** stored in this repo. `setup.ps1` rebuilds them with
+If `./setup.sh` is not executable: `chmod +x setup.sh run.sh`, or run `bash setup.sh`.
+To use a specific interpreter: `PYTHON=python3.12 ./setup.sh`.
+
+The model files (~3 GB) are **not** stored in this repo. `setup.sh` rebuilds them with
 `onnx/export.py` -> `onnx/quantize.py` -> `onnx/save_tokenizer.py`. After setup, the ONNX backends
 run fully offline from `onnx/models/`.
+
+Run in the background / keep it running after logout:
+```bash
+nohup ./run.sh > server.log 2>&1 &          # simple
+# or as a systemd service: ExecStart=/path/to/bge-reranker-api/run.sh
+```
+Stop it with `pkill -f "python app.py"` (or `kill <pid>`). Open port 8901 in your firewall if calling it from another machine.
+
+Windows? Use `setup.ps1` / `run.ps1` instead (same steps).
 
 ## API
 
@@ -52,12 +65,18 @@ Response (sorted best first; `index` is the position in your input):
 Shows status, backend, model file and tokenizer location in use.
 
 ### Examples
-```powershell
-# PowerShell
-$body = @{ query = "what is panda?"; documents = @("hi", "The giant panda is a bear species endemic to China."); top_n = 2 } | ConvertTo-Json
-Invoke-RestMethod -Uri http://localhost:8901/rerank -Method Post -ContentType "application/json" -Body $body
+```bash
+# curl
+curl -s http://localhost:8901/rerank -H 'content-type: application/json' -d '{
+  "query": "what is panda?",
+  "documents": ["hi", "The giant panda is a bear species endemic to China.", "Paris is in France"],
+  "top_n": 2
+}'
+
+curl -s http://localhost:8901/health
 ```
 ```python
+# Python (run with .venv/bin/python, or any environment that has httpx)
 import httpx
 r = httpx.post("http://localhost:8901/rerank", json={
     "query": "what is panda?",
@@ -69,9 +88,11 @@ Set a long client timeout: many long documents take tens of seconds on CPU.
 
 ## Configuration (environment variables)
 
+Set them in front of the command, e.g. `RERANK_BACKEND=torch RERANK_THREADS=4 ./run.sh`.
+
 | Variable | Default | Meaning |
 |---|---|---|
-| `RERANK_BACKEND` | `onnx-int8` via `run.ps1` (`torch` if running `app.py` directly) | `torch`, `onnx` (fp32) or `onnx-int8` |
+| `RERANK_BACKEND` | `onnx-int8` via `run.sh` (`torch` if running `app.py` directly) | `torch`, `onnx` (fp32) or `onnx-int8` |
 | `RERANK_PORT` | `8901` | Port |
 | `RERANK_THREADS` | torch: auto, ONNX: all logical cores | CPU threads |
 | `RERANK_BATCH_SIZE` | `16` | Documents scored per mini-batch |
@@ -79,13 +100,14 @@ Set a long client timeout: many long documents take tens of seconds on CPU.
 | `RERANK_LOG_FILE` | `logs/requests.jsonl` | Where each request/response is logged |
 
 Every call is appended to `logs/requests.jsonl` as one JSON line: timestamp, number of documents, latency, full request and full response.
+View the latest entry: `tail -n 1 logs/requests.jsonl | python3 -m json.tool`.
 
 ## Files
 
 | Path | Purpose |
 |---|---|
 | `app.py` | The API |
-| `run.ps1` / `setup.ps1` | Start the server / one-time setup |
+| `run.sh` / `setup.sh` | Start the server / one-time setup (Linux). `run.ps1` / `setup.ps1` are the Windows versions |
 | `onnx/export.py` | PyTorch -> ONNX fp32 |
 | `onnx/quantize.py` | fp32 -> dynamic int8 |
 | `onnx/save_tokenizer.py` | Saves the tokenizer next to the ONNX files |
@@ -95,11 +117,12 @@ Every call is appended to `logs/requests.jsonl` as one JSON line: timestamp, num
 
 ## Latency test plan
 
-With the server running:
-```powershell
-.\.venv\Scripts\python.exe bench\benchmark.py --quick   # smaller grid
-.\.venv\Scripts\python.exe bench\benchmark.py           # full grid (slow on CPU)
-.\.venv\Scripts\python.exe bench\compare.py             # torch vs onnx vs onnx-int8, on port 8902
+With the server running (in another terminal):
+```bash
+.venv/bin/python bench/benchmark.py --quick   # smaller grid
+.venv/bin/python bench/benchmark.py           # full grid (slow on CPU)
+.venv/bin/python bench/compare.py             # torch vs onnx vs onnx-int8, starts its own servers on port 8902
+.venv/bin/python onnx/validate.py             # accuracy: torch vs onnx vs int8
 ```
 `benchmark.py` measures, for each scenario, after warmup requests: p50/p95/p99/mean/min/max round-trip latency,
 server-side time, requests/s, documents/s and error rate. Scenarios: documents per request (1, 10, 50, 100) x
@@ -109,7 +132,8 @@ edit `make_payload` in `bench/benchmark.py` to use real text.
 
 ## Measured results
 
-Test machine: Intel i5-8250U (4 cores / 8 threads, AVX2, no VNNI), Windows 11, 16 GB RAM, one request at a time,
+These numbers come from the original development machine (Windows 11, Intel i5-8250U: 4 cores / 8 threads,
+AVX2, no VNNI, 16 GB RAM), not from Linux, so re-run the benchmark on your hardware. One request at a time,
 medium-length (~150 word) documents, p50 latency:
 
 | Documents | torch | ONNX fp32 | ONNX int8 | int8 speedup |
@@ -125,8 +149,16 @@ Accuracy (`onnx/validate.py`, 10 handwritten queries x 4 documents): ONNX fp32 m
 int8 has Spearman 0.991 against PyTorch with identical top-1 results (max normalized-score difference 0.027).
 This is a small sanity check, not a full quality evaluation.
 
+## Troubleshooting
+
+- `ensurepip is not available` / venv errors: install `python3-venv` (Debian/Ubuntu) or the equivalent package.
+- `Tokenizer not found ... Run: python onnx/save_tokenizer.py`: setup did not finish; re-run `./setup.sh`.
+- Out-of-memory during export: it needs roughly 6-8 GB RAM free; close other programs or add swap.
+- `Permission denied: ./setup.sh`: run `chmod +x setup.sh run.sh`.
+- Using int8 on a CPU with AVX512-VNNI/AMX gives a bigger speedup than the numbers above.
+
 ## Notes
 
-- CPU only. A newer CPU with int8 acceleration (AVX512-VNNI/AMX) or a GPU will be much faster.
+- CPU only. A GPU or newer CPU will be much faster.
 - To speed things up further: lower `max_length`, send fewer candidate documents, or use a smaller reranker.
 - The model is released by BAAI under its own license; see the model card.

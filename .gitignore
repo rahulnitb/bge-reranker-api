@@ -1,0 +1,15 @@
+# virtual env / caches
+.venv/
+__pycache__/
+*.pyc
+
+# generated model files (~3 GB) - rebuilt by setup.ps1
+onnx/models/
+
+# runtime output
+logs/
+server.log
+bench/compare.log
+
+# local tooling
+.claude/

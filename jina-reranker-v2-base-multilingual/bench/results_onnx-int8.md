@@ -1,0 +1,11 @@
+Server: {'status': 'ok', 'base_model': 'jinaai/jina-reranker-v2-base-multilingual', 'model_file': 'D:\\re-ranker\\jina-reranker-v2-base-multilingual\\onnx\\models\\model_int8.onnx', 'tokenizer': 'D:\\re-ranker\\jina-reranker-v2-base-multilingual\\onnx\\models\\tokenizer', 'device': 'cpu', 'backend': 'onnx-int8', 'torch_threads': 4, 'load_seconds': 3.634055199974682}
+
+| docs | length | concurrency | requests | p50_ms | p95_ms | p99_ms | mean_ms | min_ms | max_ms | server_mean_ms | req_per_s | docs_per_s | error_rate |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | short | 1 | 10 | 83.8 | 131.7 | 131.7 | 91.2 | 56.0 | 131.7 | 87.9 | 10.94 | 10.9 | 0.0 |
+| 10 | short | 1 | 10 | 310.9 | 346.6 | 346.6 | 316.8 | 299.0 | 346.6 | 313.5 | 3.15 | 31.5 | 0.0 |
+| 50 | short | 1 | 10 | 1827.9 | 3143.2 | 3143.2 | 2189.4 | 1761.1 | 3143.2 | 2184.4 | 0.46 | 22.8 | 0.0 |
+| 1 | medium | 1 | 10 | 172.4 | 207.6 | 207.6 | 172.8 | 139.1 | 207.6 | 169.1 | 5.78 | 5.8 | 0.0 |
+| 10 | medium | 1 | 10 | 1612.6 | 2456.6 | 2456.6 | 1871.8 | 1513.3 | 2456.6 | 1866.8 | 0.53 | 5.3 | 0.0 |
+| 50 | medium | 1 | 10 | 8409.8 | 8631.3 | 8631.3 | 8424.5 | 8261.8 | 8631.3 | 8417.3 | 0.12 | 5.9 | 0.0 |
+| 10 | medium | 4 | 20 | 6102.7 | 7946.5 | 8147.1 | 5952.6 | 2136.6 | 8147.1 | 5634.4 | 0.65 | 6.5 | 0.0 |

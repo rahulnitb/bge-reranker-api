@@ -1,0 +1,13 @@
+# Install CPU-only torch first (see setup.ps1):
+#   pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+torch==2.14.1
+transformers==5.19.0
+onnx==1.23.2
+onnxruntime==1.30.0
+onnxscript==0.7.2
+fastapi==0.143.0
+uvicorn==0.54.0
+pydantic==2.14.0
+httpx==0.28.1
+numpy==2.5.3
+# Optional, only for onnx/check_conversion.py (runs Jina's original remote code): einops==0.8.2

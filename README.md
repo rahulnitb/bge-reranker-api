@@ -4,6 +4,9 @@ A FastAPI service that reranks documents against a query using
 [BAAI/bge-reranker-v2-m3](https://huggingface.co/BAAI/bge-reranker-v2-m3), served on **port 8901**.
 It runs on CPU and supports three backends: PyTorch, ONNX fp32 and ONNX int8 (default, fastest).
 
+**Need lower latency?** [`mmarco-mMiniLMv2-L12-H384-v1/`](mmarco-mMiniLMv2-L12-H384-v1/) is a second, self-contained
+service with the same API on port 8902, using a much smaller multilingual cross-encoder with fused + int8 ONNX.
+
 ## Quick start (Linux)
 
 Requirements: Python 3.10+ with the `venv` module (on Debian/Ubuntu: `sudo apt install python3-venv`),

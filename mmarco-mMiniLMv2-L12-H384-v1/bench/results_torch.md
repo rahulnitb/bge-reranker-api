@@ -1,0 +1,11 @@
+Server: {'status': 'ok', 'base_model': 'cross-encoder/mmarco-mMiniLMv2-L12-H384-v1', 'model_file': 'cross-encoder/mmarco-mMiniLMv2-L12-H384-v1', 'tokenizer': 'cross-encoder/mmarco-mMiniLMv2-L12-H384-v1', 'device': 'cpu', 'backend': 'torch', 'torch_threads': 4, 'load_seconds': 5.48636710003484}
+
+| docs | length | concurrency | requests | p50_ms | p95_ms | p99_ms | mean_ms | min_ms | max_ms | server_mean_ms | req_per_s | docs_per_s | error_rate |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | short | 1 | 10 | 34.7 | 131.8 | 131.8 | 50.9 | 26.7 | 131.8 | 47.2 | 19.29 | 19.3 | 0.0 |
+| 10 | short | 1 | 10 | 194.3 | 215.0 | 215.0 | 196.0 | 180.4 | 215.0 | 192.3 | 5.1 | 51.0 | 0.0 |
+| 50 | short | 1 | 10 | 883.0 | 1145.7 | 1145.7 | 909.0 | 747.3 | 1145.7 | 904.8 | 1.1 | 55.0 | 0.0 |
+| 1 | medium | 1 | 10 | 92.8 | 98.7 | 98.7 | 92.4 | 78.7 | 98.7 | 89.0 | 10.81 | 10.8 | 0.0 |
+| 10 | medium | 1 | 10 | 820.3 | 905.9 | 905.9 | 826.9 | 767.5 | 905.9 | 822.8 | 1.21 | 12.1 | 0.0 |
+| 50 | medium | 1 | 10 | 4424.5 | 4523.8 | 4523.8 | 4350.3 | 4024.4 | 4523.8 | 4344.1 | 0.23 | 11.5 | 0.0 |
+| 10 | medium | 4 | 20 | 2638.5 | 5132.2 | 5186.4 | 2757.6 | 742.4 | 5186.4 | 2445.9 | 1.39 | 13.9 | 0.0 |

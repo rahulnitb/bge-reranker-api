@@ -1,0 +1,11 @@
+Server: {'status': 'ok', 'base_model': 'cross-encoder/mmarco-mMiniLMv2-L12-H384-v1', 'model_file': 'D:\\re-ranker\\mmarco-mMiniLMv2-L12-H384-v1\\onnx\\models\\model_int8.onnx', 'tokenizer': 'D:\\re-ranker\\mmarco-mMiniLMv2-L12-H384-v1\\onnx\\models\\tokenizer', 'device': 'cpu', 'backend': 'onnx-int8', 'torch_threads': 4, 'load_seconds': 3.5407419000403024}
+
+| docs | length | concurrency | requests | p50_ms | p95_ms | p99_ms | mean_ms | min_ms | max_ms | server_mean_ms | req_per_s | docs_per_s | error_rate |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | short | 1 | 10 | 13.0 | 17.0 | 17.0 | 13.5 | 12.5 | 17.0 | 10.3 | 72.83 | 72.8 | 0.0 |
+| 10 | short | 1 | 10 | 94.0 | 690.7 | 690.7 | 282.3 | 77.0 | 690.7 | 279.0 | 3.54 | 35.4 | 0.0 |
+| 50 | short | 1 | 10 | 871.6 | 1832.9 | 1832.9 | 955.4 | 428.5 | 1832.9 | 951.4 | 1.05 | 52.3 | 0.0 |
+| 1 | medium | 1 | 10 | 40.1 | 61.6 | 61.6 | 42.7 | 36.4 | 61.6 | 39.6 | 23.26 | 23.3 | 0.0 |
+| 10 | medium | 1 | 10 | 399.5 | 479.9 | 479.9 | 408.9 | 383.1 | 479.9 | 405.4 | 2.44 | 24.4 | 0.0 |
+| 50 | medium | 1 | 10 | 2952.6 | 5173.2 | 5173.2 | 3464.3 | 2116.6 | 5173.2 | 3457.9 | 0.29 | 14.4 | 0.0 |
+| 10 | medium | 4 | 20 | 1825.0 | 3648.2 | 3802.0 | 1869.7 | 378.7 | 3802.0 | 1554.2 | 2.07 | 20.7 | 0.0 |

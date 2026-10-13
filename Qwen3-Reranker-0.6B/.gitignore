@@ -1,0 +1,9 @@
+# virtual env
+.venv/
+
+# generated model files (~4 GB) - rebuilt by setup.ps1 / setup.sh
+onnx/models/
+
+# runtime output
+logs/
+server.log

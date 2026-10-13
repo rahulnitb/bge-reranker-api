@@ -4,8 +4,23 @@ A FastAPI service that reranks documents against a query using
 [BAAI/bge-reranker-v2-m3](https://huggingface.co/BAAI/bge-reranker-v2-m3), served on **port 8901**.
 It runs on CPU and supports three backends: PyTorch, ONNX fp32 and ONNX int8 (default, fastest).
 
-**Need lower latency?** [`mmarco-mMiniLMv2-L12-H384-v1/`](mmarco-mMiniLMv2-L12-H384-v1/) is a second, self-contained
-service with the same API on port 8902, using a much smaller multilingual cross-encoder with fused + int8 ONNX.
+## Other rerankers in this repo
+
+Each folder is a self-contained service (own setup, venv, model files and README) with the **same `/rerank` API**,
+so clients only change the port. All are multilingual. Latency is p50 on the same CPU (Intel i5-8250U, AVX2) with
+each service's default backend, ~150-word documents:
+
+| Service | Port | Params | Max tokens | Default backend | 1 doc | 10 docs | 50 docs | License |
+|---|---|---|---|---|---|---|---|---|
+| bge-reranker-v2-m3 (this folder) | 8901 | 568M | 8192 | ONNX int8 | 0.95 s | 6.1 s | 33.8 s | Apache-2.0 |
+| [`mmarco-mMiniLMv2-L12-H384-v1/`](mmarco-mMiniLMv2-L12-H384-v1/) | 8902 | 118M | 512 | ONNX fused + int8 | 40 ms | 0.40 s | 2.95 s | Apache-2.0 |
+| [`jina-reranker-v2-base-multilingual/`](jina-reranker-v2-base-multilingual/) | 8903 | 278M | 1024 | ONNX fused + int8 | 0.17 s | 1.6 s | 8.4 s | **CC-BY-NC-4.0 (non-commercial)** |
+| [`Qwen3-Reranker-0.6B/`](Qwen3-Reranker-0.6B/) | 8904 | 596M | 8192 | ONNX fp32 | 0.96 s | 11.0 s | 51.5 s | Apache-2.0 |
+
+Few measured requests per cell, so treat these as indicative. Qwen3-Reranker is an LLM with a yes/no prompt; it also
+accepts an optional `instruction` field. Its int8 is weight-only and slower than fp32 on this CPU, because standard
+int8 breaks its accuracy (see its README). Ranking quality was only sanity-checked on a small handwritten set, so
+evaluate on your own data before choosing.
 
 ## Quick start (Linux)
 
